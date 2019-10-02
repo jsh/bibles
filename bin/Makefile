@@ -1,5 +1,3 @@
-.SILENT:
-
 CHECK := sizes.py
 
 all: format lint lama pytest out.csv
@@ -20,3 +18,5 @@ out.csv: gains.py
 	./gains.py > out.csv
 
 .PHONY: format lama lint pytest
+.SILENT:
+

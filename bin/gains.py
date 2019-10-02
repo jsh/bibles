@@ -8,7 +8,7 @@ import parseargs
 import sizes
 from sizes import Sizes
 
-# pylint: disable=line-too-long
+debug = False
 
 
 def teaching_gain(base, snippet, base_size, snippet_size, combined_size):
@@ -17,12 +17,32 @@ def teaching_gain(base, snippet, base_size, snippet_size, combined_size):
     Scaled to make the numbers easy to read.
     """
     taught_snippet_size = combined_size - base_size[base]
-    return (1 - (taught_snippet_size) / snippet_size[snippet]) * 1000
+    teaching_gain = (1 - (taught_snippet_size) / snippet_size[snippet]) * 1000
+    if debug:
+        fmt = (
+            "base_size[{}] = {}, "
+            "snippet_size[{}] = {}, "
+            "combined_size = {}, "
+            "teaching_gain = {}"
+        )
+        print(
+            fmt.format(
+                base,
+                base_size[base],
+                snippet,
+                snippet_size[snippet],
+                combined_size,
+                teaching_gain,
+            )
+        )
+
+    return teaching_gain
 
 
 def main():
     """The feature attraction."""
-    args = parseargs.parseargs()
+    global debug
+    debug = parseargs.parseargs()
 
     base_dir = "ot"
     snippet_dir = "nt"
@@ -45,24 +65,6 @@ def main():
                         base, snippet, base_size, snippet_size, combined_size
                     )
                     line.append(str(round(gain)))
-                    if args.debug:
-                        fmt = (
-                            "base_size[{}] = {}, "
-                            "snippet_size[{}] = {}, "
-                            "combined_size = {}, "
-                            "teaching_gain = {}"
-                        )
-
-                        print(
-                            fmt.format(
-                                base,
-                                base_size[base],
-                                snippet,
-                                snippet_size[snippet],
-                                combined_size,
-                                gain,
-                            )
-                        )
 
             print(",".join(line))
 
