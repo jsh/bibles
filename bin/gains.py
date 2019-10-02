@@ -42,7 +42,7 @@ def teaching_gain(base, snippet, base_size, snippet_size, combined_size):
 def main():
     """The feature attraction."""
     global debug
-    debug = parseargs.parseargs()
+    debug = parseargs.parseargs().debug
 
     base_dir = "ot"
     snippet_dir = "nt"
