@@ -2,7 +2,7 @@
 
 CHECK := sizes.py
 
-all: format lint lama pytest
+all: format lint lama pytest out.csv
 
 format:
 	black -q *.py
@@ -15,5 +15,8 @@ lint:
 
 pytest:
 	pytest -q --doctest-modules $(CHECK)
+
+out.csv: gains.py
+	./gains.py > out.csv
 
 .PHONY: format lama lint pytest

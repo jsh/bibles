@@ -30,8 +30,11 @@ def main():
     snippets = [file for file in os.listdir(snippet_dir) if sizes.not_json(file)]
     base_size = Sizes(base_dir).sizes()
     snippet_size = Sizes(snippet_dir).sizes()
+    column_headers = [""] + snippets
+    print(",".join(column_headers))
+
     for base in bases:
-        print(base)
+        line = [base]
         with open(os.path.join(base_dir, base), "rb") as bfd:
             base_text = bfd.read()
             for snippet in snippets:
@@ -41,6 +44,7 @@ def main():
                     gain = teaching_gain(
                         base, snippet, base_size, snippet_size, combined_size
                     )
+                    line.append(str(round(gain)))
                     if args.debug:
                         fmt = (
                             "base_size[{}] = {}, "
@@ -59,6 +63,8 @@ def main():
                                 gain,
                             )
                         )
+
+            print(",".join(line))
 
 
 if __name__ == "__main__":
