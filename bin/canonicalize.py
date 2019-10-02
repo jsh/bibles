@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-'''Canonicalize text.
+"""Canonicalize text.
 
 Remove diacriticals.
 Remove punctuation
 Convert all text to lower-case.
-'''
+"""
 
 import string
 import sys
@@ -20,6 +20,6 @@ s = s.translate(table)
 try:
     s = unidecode.unidecode(s).lower()
     assert len(s) >= nbytes
-    print(s[:nbytes-1])
+    print(s[: nbytes - 1])
 except Exception:
     pass
