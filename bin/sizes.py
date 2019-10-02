@@ -7,14 +7,24 @@ import zlib
 
 
 def compressed_size(filename):
-    """Compressed file size."""
+    """Compressed file size.
+
+    >>> compressed_size('/dev/null')
+    8
+    """
     with open(filename, "rb") as stream:
         text = stream.read()
         return len(zlib.compress(text))
 
 
 def not_json(filename):
-    """True iff the file's NOT json."""
+    """True iff the file's NOT json.
+
+    >>> not_json('foo')
+    True
+    >>> not_json('foo.json')
+    False
+    """
     return filename[-5:] != ".json"
 
 
