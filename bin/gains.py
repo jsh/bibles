@@ -44,8 +44,8 @@ def main():
     global debug
     debug = parseargs.parseargs().debug
 
-    base_dir = "ot"
-    snippet_dir = "nt"
+    base_dir = "ot.d"
+    snippet_dir = "nt.d"
     bases = [file for file in os.listdir(base_dir) if sizes.not_json(file)]
     snippets = [file for file in os.listdir(snippet_dir) if sizes.not_json(file)]
     base_size = Sizes(base_dir).sizes()

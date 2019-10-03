@@ -3,9 +3,9 @@
 
 source location.sh  # where is everything?
 
-mkdir -p ot nt
+mkdir -p ot.d nt.d
 
 for lang in $lang_list; do
-	make-corpus.sh ot $lang | canonicalize.py 2000000 > ot/$lang
-	make-corpus.sh nt $lang | canonicalize.py  200000 > nt/$lang
+	make-corpus.sh ot.d $lang | canonicalize.py 2000000 > ot.d/$lang
+	make-corpus.sh nt.d $lang | canonicalize.py  200000 > nt.d/$lang
 done
