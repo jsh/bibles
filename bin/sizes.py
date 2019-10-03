@@ -29,7 +29,10 @@ def not_json(filename):
 
 
 class Sizes:
-    """Encapsulate information about compressed file sizes in directory."""
+    """Encapsulate information about compressed file sizes in directory.
+    >>> Sizes() #doctest: +ELLIPSIS
+    sizes.Sizes('.')
+    """
 
     def __init__(self, directory="."):
         def file_sizes(directory):
@@ -45,7 +48,7 @@ class Sizes:
 
             # add anything missing
             for file in files:
-                if not_json(file) and file not in sizes:
+                if os.path.isfile(file) and not_json(file) and file not in sizes:
                     sizes[file] = compressed_size(os.path.join(directory, file))
             with open(size_file, "w") as stream:
                 json.dump(sizes, stream)
@@ -55,7 +58,7 @@ class Sizes:
         self._sizes = file_sizes(directory)
 
     def __repr__(self):
-        print("{}({})".format(self.__class__, self._directory))
+        return "{}.{}('{}')".format(self.__class__.__module__, self.__class__.__qualname__, self._directory)
 
     def sizes(self):
         """All sizes."""
@@ -64,10 +67,3 @@ class Sizes:
     def size(self, file):
         """Compressed size of file."""
         return self._sizes[file]
-
-
-if __name__ == "__main__":
-    old_testament = Sizes("ot")
-    new_testament = Sizes("nt")
-
-    print(old_testament.size("french"))
