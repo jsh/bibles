@@ -30,6 +30,7 @@ def not_json(filename):
 
 class Sizes:
     """Encapsulate information about compressed file sizes in directory.
+
     >>> Sizes() #doctest: +ELLIPSIS
     sizes.Sizes('.')
     """
@@ -58,7 +59,9 @@ class Sizes:
         self._sizes = file_sizes(directory)
 
     def __repr__(self):
-        return "{}.{}('{}')".format(self.__class__.__module__, self.__class__.__qualname__, self._directory)
+        return "{}.{}('{}')".format(
+            self.__class__.__module__, self.__class__.__qualname__, self._directory
+        )
 
     def sizes(self):
         """All sizes."""

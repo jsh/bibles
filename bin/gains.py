@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """How much can snippet compression learn from different bases?"""
+# pylint: disable=fixme
 
+import logging
 import os
 import zlib
 
@@ -8,65 +10,64 @@ import parseargs
 import sizes
 from sizes import Sizes
 
-debug = False
+BASE_DIR = "ot.d"
+SNIPPET_DIR = "nt.d"
 
 
-def teaching_gain(base, snippet, base_size, snippet_size, combined_size):
+def teaching_gain(base_size, snippet_size, combined_size):
     """Gain in compression through teaching.
-
     Scaled to make the numbers easy to read.
-    """
-    taught_snippet_size = combined_size - base_size[base]
-    teaching_gain = (1 - (taught_snippet_size) / snippet_size[snippet]) * 1000
-    if debug:
-        fmt = (
-            "base_size[{}] = {}, "
-            "snippet_size[{}] = {}, "
-            "combined_size = {}, "
-            "teaching_gain = {}"
-        )
-        print(
-            fmt.format(
-                base,
-                base_size[base],
-                snippet,
-                snippet_size[snippet],
-                combined_size,
-                teaching_gain,
-            )
-        )
 
-    return teaching_gain
+    >>> teaching_gain(100, 10, 101)
+    9000
+    """
+    taught_snippet_size = combined_size - base_size
+    gain = (snippet_size / taught_snippet_size - 1) * 1000
+    fmt = (
+        "base_size = %d, "
+        "snippet_size = %d, "
+        "combined_size = %d, "
+        "teaching_gain = %d"
+    )
+    logging.debug(fmt, base_size, snippet_size, combined_size, gain)
+
+    return round(gain)
+
+
+def snippet_gain(base, base_text, snippet, snippet_text):
+    """Gain from compressing snippet after teaching."""
+    base_sizes = Sizes(BASE_DIR)
+    snippet_sizes = Sizes(SNIPPET_DIR)
+    combined_size = len(zlib.compress(base_text + snippet_text))
+    return teaching_gain(
+        base_sizes.size(base), snippet_sizes.size(snippet), combined_size
+    )
 
 
 def main():
     """The feature attraction."""
-    global debug
-    debug = parseargs.parseargs().debug
 
-    base_dir = "ot.d"
-    snippet_dir = "nt.d"
-    bases = [file for file in os.listdir(base_dir) if sizes.not_json(file)]
-    snippets = [file for file in os.listdir(snippet_dir) if sizes.not_json(file)]
-    base_size = Sizes(base_dir).sizes()
-    snippet_size = Sizes(snippet_dir).sizes()
+    args = parseargs.parseargs()
+    logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO))
+
+    bases = [file for file in os.listdir(BASE_DIR) if sizes.not_json(file)]
+    snippets = [file for file in os.listdir(SNIPPET_DIR) if sizes.not_json(file)]
+
     column_headers = [""] + snippets
     print(",".join(column_headers))
 
     for base in bases:
         line = [base]
-        with open(os.path.join(base_dir, base), "rb") as bfd:
-            base_text = bfd.read()
-            for snippet in snippets:
-                with open(os.path.join(snippet_dir, snippet), "rb") as sfd:
-                    snippet_text = sfd.read()
-                    combined_size = len(zlib.compress(base_text + snippet_text))
-                    gain = teaching_gain(
-                        base, snippet, base_size, snippet_size, combined_size
-                    )
-                    line.append(str(round(gain)))
 
-            print(",".join(line))
+        with open(os.path.join(BASE_DIR, base), "rb") as bfd:
+            base_text = bfd.read()
+        for snippet in snippets:
+            with open(os.path.join(SNIPPET_DIR, snippet), "rb") as sfd:
+                snippet_text = sfd.read()
+            # TODO: Make {name, text} into a named tuple.
+            line.append(str(snippet_gain(base, base_text, snippet, snippet_text)))
+
+        print(",".join(line))
 
 
 if __name__ == "__main__":
