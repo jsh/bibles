@@ -31,8 +31,16 @@ def not_json(filename):
 class Sizes:
     """Encapsulate information about compressed file sizes in directory.
 
-    >>> Sizes() #doctest: +ELLIPSIS
-    sizes.Sizes('.')
+    >>> os.chdir('/var/tmp')
+    >>> open('sizetest', "w+").close()
+    >>> x = Sizes('/var/tmp')
+    >>> x.size('sizetest')
+    8
+
+    >>> os.unlink('/var/tmp/sizetest')
+    >>> x = Sizes('/var/tmp')
+    >>> x.size('sizetest')
+
     """
 
     def __init__(self, directory="."):
@@ -45,12 +53,20 @@ class Sizes:
                 sizes = {}
             filenames = os.listdir(directory)
             # remove the ones that are gone
-            sizes = {filename: size for filename, size in sizes.items() if filename in filenames}
+            sizes = {
+                filename: size
+                for filename, size in sizes.items()
+                if filename in filenames
+            }
 
             # add anything missing
             for filename in filenames:
                 file_path = os.path.join(directory, filename)
-                if os.path.isfile(file_path) and not_json(file_path) and filename not in sizes:
+                if (  # pylint: disable=C0330
+                    os.path.isfile(file_path)
+                    and not_json(file_path)
+                    and filename not in sizes
+                ):
                     sizes[filename] = compressed_size(file_path)
             with open(size_file, "w") as stream:
                 json.dump(sizes, stream)
@@ -70,4 +86,7 @@ class Sizes:
 
     def size(self, filename):
         """Compressed size of file."""
-        return self._sizes[filename]
+        try:
+            return self._sizes[filename]
+        except KeyError:
+            pass
