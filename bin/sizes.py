@@ -43,14 +43,15 @@ class Sizes:
                     sizes = json.load(stream)
             except Exception:
                 sizes = {}
-            files = os.listdir(directory)
+            filenames = os.listdir(directory)
             # remove the ones that are gone
-            sizes = {file: size for file, size in sizes.items() if file in files}
+            sizes = {filename: size for filename, size in sizes.items() if filename in filenames}
 
             # add anything missing
-            for file in files:
-                if os.path.isfile(file) and not_json(file) and file not in sizes:
-                    sizes[file] = compressed_size(os.path.join(directory, file))
+            for filename in filenames:
+                file_path = os.path.join(directory, filename)
+                if os.path.isfile(file_path) and not_json(file_path) and filename not in sizes:
+                    sizes[filename] = compressed_size(file_path)
             with open(size_file, "w") as stream:
                 json.dump(sizes, stream)
             return sizes
@@ -67,6 +68,6 @@ class Sizes:
         """All sizes."""
         return self._sizes
 
-    def size(self, file):
+    def size(self, filename):
         """Compressed size of file."""
-        return self._sizes[file]
+        return self._sizes[filename]
