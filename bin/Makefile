@@ -1,22 +1,20 @@
 CHECK := sizes.py gains.py
 
-all: format lint lama pytest out.csv
+all: format lint test out.csv
 
 format:
 	black -q *.py
 
-lama:
-	pylama *.py
-
 lint:
 	pylint -rn $(CHECK)
+	pylama *.py
 
-pytest:
+test:
 	pytest -q --doctest-modules $(CHECK)
 
 out.csv: gains.py
 	./gains.py | tee out.csv
 
-.PHONY: format lama lint pytest
+.PHONY: format lint test
 .SILENT:
 
