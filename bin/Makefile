@@ -1,4 +1,5 @@
 CHECK := sizes.py gains.py
+CORPORA := ot.d nt.d
 
 all: format lint test out.csv
 
@@ -12,7 +13,7 @@ lint:
 test:
 	pytest -q --doctest-modules $(CHECK)
 
-out.csv: gains.py
+out.csv: gains.py $(CORPORA)
 	./gains.py | tee out.csv
 
 .PHONY: format lint test
