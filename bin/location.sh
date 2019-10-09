@@ -9,7 +9,7 @@ function readlink() {
 }
 
 top=$( readlink -f $( readlink -f $( dirname $( readlink -f $0 ) ) ) )/..  # where am I
-lang_data=$top/langs # where are the langs
+lang_data=$top/langs.d # where are the langs
 lang_list="$( cd $lang_data; ls )"
 
 export wd lang_data lang_list

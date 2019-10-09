@@ -10,4 +10,4 @@ lang=$2
 
 source location.sh  # where is everything?
 
-cat $( ls $lang_data/$lang/*.txt | grep -f $corpus-list.txt )
+cat $( ls $lang_data/$lang/*.txt | grep -f ${corpus/.d/}-list.txt )
