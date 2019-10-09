@@ -18,11 +18,13 @@ def teaching_gain(base_size, snippet_size, combined_size):
     """Gain in compression through teaching.
     Scaled to make the numbers easy to read.
 
-    >>> teaching_gain(100, 10, 101)
-    9000
+    >>> teaching_gain(100, 10, 109)
+    1
+    >>> teaching_gain(100, 10, 111)
+    -1
     """
     taught_snippet_size = combined_size - base_size
-    gain = (snippet_size / taught_snippet_size - 1) * 1000
+    gain = snippet_size - taught_snippet_size
     fmt = (
         "base_size = %d, "
         "snippet_size = %d, "
@@ -46,7 +48,6 @@ def snippet_gain(base, base_text, snippet, snippet_text):
 
 def main():
     """The feature attraction."""
-
     args = parseargs.parseargs()
     logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO))
 
