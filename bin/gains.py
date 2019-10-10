@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """How much can snippet compression learn from different bases?"""
-# pylint: disable=fixme
 
+from collections import namedtuple
 import logging
 import os
 import zlib
@@ -12,6 +12,9 @@ from sizes import Sizes
 
 BASE_DIR = "ot.d"
 SNIPPET_DIR = "nt.d"
+
+
+Chunk = namedtuple("Chunk", "name, text")
 
 
 def teaching_gain(base_size, snippet_size, combined_size):
@@ -36,13 +39,13 @@ def teaching_gain(base_size, snippet_size, combined_size):
     return round(gain)
 
 
-def snippet_gain(base, base_text, snippet, snippet_text):
+def snippet_gain(base, snippet):
     """Gain from compressing snippet after teaching."""
     base_sizes = Sizes(BASE_DIR)
     snippet_sizes = Sizes(SNIPPET_DIR)
-    combined_size = len(zlib.compress(base_text + snippet_text))
+    combined_size = len(zlib.compress(base.text + snippet.text))
     return teaching_gain(
-        base_sizes.size(base), snippet_sizes.size(snippet), combined_size
+        base_sizes.size(base.name), snippet_sizes.size(snippet.name), combined_size
     )
 
 
@@ -51,24 +54,22 @@ def main():
     args = parseargs.parseargs()
     logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO))
 
-    bases = [file for file in os.listdir(BASE_DIR) if sizes.not_json(file)]
-    snippets = [file for file in os.listdir(SNIPPET_DIR) if sizes.not_json(file)]
+    base_names = [file for file in os.listdir(BASE_DIR) if sizes.not_json(file)]
+    snippet_names = [file for file in os.listdir(SNIPPET_DIR) if sizes.not_json(file)]
 
-    column_headers = [""] + snippets
+    column_headers = [""] + snippet_names
     print(",".join(column_headers))
 
-    for base in bases:
-        line = [base]
+    for base_name in base_names:
+        row = [base_name]
+        with open(os.path.join(BASE_DIR, base_name), "rb") as bfd:
+            base = Chunk(name=base_name, text=bfd.read())
+        for snippet_name in snippet_names:
+            with open(os.path.join(SNIPPET_DIR, snippet_name), "rb") as sfd:
+                snippet = Chunk(name=snippet_name, text=sfd.read())
+            row.append(str(snippet_gain(base, snippet)))
 
-        with open(os.path.join(BASE_DIR, base), "rb") as bfd:
-            base_text = bfd.read()
-        for snippet in snippets:
-            with open(os.path.join(SNIPPET_DIR, snippet), "rb") as sfd:
-                snippet_text = sfd.read()
-            # TODO: Make {name, text} into a named tuple.
-            line.append(str(snippet_gain(base, base_text, snippet, snippet_text)))
-
-        print(",".join(line))
+        print(",".join(row))
 
 
 if __name__ == "__main__":
