@@ -2,6 +2,7 @@
 """How much can snippet compression learn from different bases?"""
 
 from collections import namedtuple
+from collections import defaultdict
 import logging
 import os
 import zlib
@@ -17,36 +18,10 @@ SNIPPET_DIR = "nt.d"
 Chunk = namedtuple("Chunk", "name, text")
 
 
-def teaching_gain(base_size, snippet_size, combined_size):
-    """Gain in compression through teaching.
-    Scaled to make the numbers easy to read.
-
-    >>> teaching_gain(100, 10, 109)
-    1
-    >>> teaching_gain(100, 10, 111)
-    -1
-    """
-    taught_snippet_size = combined_size - base_size
-    gain = snippet_size - taught_snippet_size
-    fmt = (
-        "base_size = %d, "
-        "snippet_size = %d, "
-        "combined_size = %d, "
-        "teaching_gain = %d"
-    )
-    logging.debug(fmt, base_size, snippet_size, combined_size, gain)
-
-    return round(gain)
-
-
-def snippet_gain(base, snippet):
-    """Gain from compressing snippet after teaching."""
-    base_sizes = Sizes(BASE_DIR)
-    snippet_sizes = Sizes(SNIPPET_DIR)
+def taught_size(base, snippet, base_sizes):
+    """Size increase from adding snippet, then compressing."""
     combined_size = len(zlib.compress(base.text + snippet.text))
-    return teaching_gain(
-        base_sizes.size(base.name), snippet_sizes.size(snippet.name), combined_size
-    )
+    return combined_size - base_sizes[base.name]
 
 
 def main():
@@ -54,21 +29,35 @@ def main():
     args = parseargs.parseargs()
     logging.basicConfig(level=(logging.DEBUG if args.debug else logging.INFO))
 
-    base_names = [file for file in os.listdir(BASE_DIR) if sizes.not_json(file)]
-    snippet_names = [file for file in os.listdir(SNIPPET_DIR) if sizes.not_json(file)]
+    base_names = sorted([file for file in os.listdir(BASE_DIR) if sizes.not_json(file)])
+    snippet_names = sorted(
+        [file for file in os.listdir(SNIPPET_DIR) if sizes.not_json(file)]
+    )
+
+    logging.debug("base_names: %s", str(base_names))
+    logging.debug("snippet_names: %s", str(snippet_names))
 
     column_headers = [""] + snippet_names
     print(",".join(column_headers))
 
+    taught_sizes = defaultdict(dict)
+
     for base_name in base_names:
-        row = [base_name]
+        base_sizes = Sizes(BASE_DIR).sizes()
         with open(os.path.join(BASE_DIR, base_name), "rb") as bfd:
             base = Chunk(name=base_name, text=bfd.read())
         for snippet_name in snippet_names:
             with open(os.path.join(SNIPPET_DIR, snippet_name), "rb") as sfd:
                 snippet = Chunk(name=snippet_name, text=sfd.read())
-            row.append(str(snippet_gain(base, snippet)))
+            taught_sizes[base_name][snippet_name] = taught_size(
+                base, snippet, base_sizes
+            )
 
+    for base_name in base_names:
+        row = [base_name]
+        self_size = taught_sizes[base_name][base_name]
+        for snippet_name in snippet_names:
+            row.append(str(taught_sizes[base_name][snippet_name] - self_size))
         print(",".join(row))
 
 
